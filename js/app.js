@@ -27,7 +27,7 @@
 const nav = document.getElementById("navbar__list") 
 
 // this list contains the availble 'section' elements, that will be used to set the navigation list elements.
-const sections = document.getElementsByTagName("section");
+const sections = document.querySelectorAll("section");
 
 /**
  * End Global Variables
@@ -35,7 +35,20 @@ const sections = document.getElementsByTagName("section");
  * 
 */
 
+// [getOffset] function will help determine the offset of the element relative to the current offset.
+const getOffset = (element) => {
+    return element.getBoundingClientRect().top;
+};
 
+// [removeClassName] function will help remove a class name from a given element.
+const removeClassName = (element, className) => {
+    element.classList.remove(className);
+} 
+
+// [addClassName] does the opposite of [removeClassName].
+const addClassName = (element, className) => {
+    element.classList.add(className);
+} 
 
 /**
  * End Helper Functions
@@ -44,7 +57,6 @@ const sections = document.getElementsByTagName("section");
 */
 
 // build the nav
-
 
 /*
 Function [buildNav] will be used to set the navigation list items.  
@@ -60,17 +72,25 @@ const buildNav = () => {
         const itemLink = document.createElement('a');
 
         // The following, will set the class name, hyper reference, and the text content to the 'a' element :
-        sectionLink.className = "navbar__link"; 
-        sectionLink.href = `#${section.id}`; 
-        sectionLink.textContent = section.dataset.nav;  
+        itemLink.className = "menu__link "; 
+        itemLink.href = `#${section.id}`; 
+        itemLink.textContent = section.dataset.nav;  
 
         // This appends the li and a elements created to the navigation list fragment [navListsFragment].
         sectionItem.appendChild(itemLink);
         navListsFragment.appendChild(sectionItem)
     });
 
+    /* 
+    This loop is used to ensure that there is navigation list items that exist in the html
+    somehow before adding the list elements. 
+    */
+    while(nav.firstChild) {
+        nav.removeChild(nav.firstChild);
+    }
+
     // This will repaint and reflow the document to set the navigation list items.
-    nav.innerHTML = navListsFragment;
+    nav.appendChild(navListsFragment);
 } 
 
 
@@ -80,9 +100,51 @@ buildNav();
 
 // Add class 'active' to section when near top of viewport
 
+// [getOffset] will be a window scroll EventListener. It will be 
+const activateSectionInView = () => {
+    sections.forEach((section) => {
+        const offset = getOffset(section);
+
+        removeClassName(section, "your-active-class");
+        if (offset < 150 && offset > -150) {
+            addClassName(section, "your-active-class");
+        }
+    });     
+}
+
+// For each scroll event there, [activateSectionInView] will be invoked
+window.addEventListener('scroll', activateSectionInView);
+
 
 // Scroll to anchor ID using scrollTO event
 
+// 
+
+const navigationLinks = document.querySelectorAll(".navbar__menu .menu__link");
+
+const scrollToSectionByLink = (event, sectionId) => {
+    /* 
+    I am preventing default behavior, especially, the addition to the url "#{sectionid}"
+    which makes the url a bit unclean with the '#' symbol. 
+    */
+    
+    event.preventDefault();
+
+    // This is to extract section ID from link href (href returns absolute url)
+    sectionId = sectionId.split('#')[1];
+    
+    const section = document.getElementById(sectionId);
+
+    // scroll to section using the y axis of the top of section given by link 'href'.  
+    window.scrollTo({
+        top: section.offsetTop, // this is the offset of the specified section element
+        behavior: "smooth",
+    });
+}
+
+navigationLinks.forEach(link => {
+    link.addEventListener("click", (event) => scrollToSectionByLink(event, link.href));
+});
 
 /**
  * End Main Functions

@@ -105,26 +105,41 @@ const activeSectionListener = () => {
     sections.forEach(section => {
         const offset = getOffset(section);
 
+        // These two variables is going to help in activating navigation links 
+        const navigationLinks = getLinks();
+        let sectionCorrespondingNavigationLink;
+
+        navigationLinks.forEach(link => { 
+            if(link.href.split('#')[1] == section.id) { 
+                sectionCorrespondingNavigationLink = link;
+            }
+        });
+
+
+        removeClassName(sectionCorrespondingNavigationLink, "active-navigation-link");
         removeClassName(section, "your-active-class");
         if (offset < 150 && offset > -150) {
+            addClassName(sectionCorrespondingNavigationLink, "active-navigation-link");
             addClassName(section, "your-active-class");
         }
     });
 }
 
 
-const activateSectionInView = () => {
+const activateNavigationElementInView = () => {
     const navigationLinks = getLinks();
 
-    console.log(navigationLinks[0].innerHTML);
     navigationLinks.forEach(link => {
-        link.addEventListener("click", (event) => scrollToSectionByLink(event, link.href));
+        link.addEventListener("click", () => activeSectionListener());
     });
 }
 
-// For each scroll event there, [activateSectionInView] will be invoked
+// For each scroll event, [activateSectionInView] will be invoked
 const setSectionInViewListeneres = () => {
-    window.addEventListener('scroll', activateSectionInView);
+    window.addEventListener('scroll', () => {
+        activeSectionListener();
+        activateNavigationElementInView();
+    });
 }
 
 
@@ -179,4 +194,4 @@ buildNav();
 setLinkEventListeners();
 
 // Set sections as active
-activateSectionInView();
+setSectionInViewListeneres();
